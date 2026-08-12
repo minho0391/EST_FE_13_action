@@ -1,20 +1,20 @@
-import { createClient } from "@/utils/supabase/server";
+import { createStaticClient } from "@/utils/supabase/static";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 
 export async function generateStaticParams() {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase.from("portfolio").select("id");
   if (error) {
     throw new Error(`generateStaticParams 실패: ${error.message}`);
   }
-  return data.map(row => ({
+  return (data ?? []).map(row => ({
     id: String(row.id),
   }));
 }
 
 export default async function Portfolio({ params }) {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { id } = await params;
 
   const { data: current, error } = await supabase
@@ -54,10 +54,6 @@ export default async function Portfolio({ params }) {
     .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
-
-  // console.log("prev" + prev);
-  // console.log("next" + next);
-  // console.log(current);
 
   const getPublicURL = path => {
     if (!path) return "";
